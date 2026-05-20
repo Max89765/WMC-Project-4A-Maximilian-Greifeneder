@@ -18,6 +18,7 @@ const io = new Server(httpServer, {
 });
 
 
+
 if (fs.existsSync(dbFilePath)) {
     fs.unlinkSync(dbFilePath);
 }
@@ -45,6 +46,10 @@ await db.exec(`
 app.get('/', (req, res) => {
     res.send('hello world');
 });
+
+function hashPassword(password) { // Gemini Prompt: "Create a js function to hash password"
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 
 io.on('connection', (socket) => {
