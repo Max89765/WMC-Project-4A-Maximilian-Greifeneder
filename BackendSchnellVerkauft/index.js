@@ -13,10 +13,7 @@ const PORT = 3000;
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
+    cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE']}
 });
 
 
@@ -28,6 +25,15 @@ const db = await open({
     filename: dbFilePath,
     driver: sqlite3.Database
 });
+
+await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        username    TEXT    NOT NULL,
+        email       TEXT    NOT NULL UNIQUE,
+        password    TEXT    NOT NULL
+    );
+`);
 
 app.get('/', (req, res) => {
     res.send('hello world');
