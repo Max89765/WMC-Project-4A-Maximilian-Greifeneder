@@ -1,5 +1,6 @@
 'use strict'
 
+import crypto from 'crypto';
 import fs from 'fs';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
@@ -32,6 +33,12 @@ await db.exec(`
         username    TEXT    NOT NULL,
         email       TEXT    NOT NULL UNIQUE,
         password    TEXT    NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+        token      TEXT    PRIMARY KEY,
+        user_id    INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
     );
 `);
 
