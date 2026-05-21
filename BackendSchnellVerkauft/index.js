@@ -51,6 +51,23 @@ function hashPassword(password) { // Gemini Prompt: "Create a js function to has
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
+//middleware check Bearer Token
+async function requireAuth(req, res, next) {
+    const auth = req.headers.authorization;
+    if (!(auth && auth.startsWith('Bearer '))) {
+        return res.status(401).json({ error: 'not loged in' });
+    }
+    const token = auth.slice(7);
+    const session = await db.get(`
+        SELECT * FROM sessions WHERE token = ?
+    `, [token]);
+    if (!session) {
+        return res.status(401).json({ error: 'wrong token' });
+    }
+    req.userId = session.user_id;
+    next();
+}
+
 
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
