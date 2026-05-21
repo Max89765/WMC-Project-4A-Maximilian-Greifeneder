@@ -12,6 +12,7 @@ import express from 'express';
 const dbFilePath = path.join(process.cwd(), 'database.sqlite');
 const PORT = 3000;
 const app = express();
+app.use(express.json());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE']}
@@ -67,6 +68,32 @@ async function requireAuth(req, res, next) {
     req.userId = session.user_id;
     next();
 }
+
+app.post('/api/auth/register', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'wrong input' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ error: 'password needs to be 6 letters long' });
+    }
+
+    const existing = await db.get(`
+        SELECT id FROM users WHERE email = ?
+    `, [email]);
+    if (existing) {
+        return res.status(409).json({ error: 'e-mail already used' });
+    }
+
+    const pwdhash = hashPassword(password);
+    const result = await db.run(`
+        INSERT INTO users (username, email, password) VALUES (?, ?, ?)
+    `, [username, email, pwdhash]);
+
+    res.status(201).json({ message: 'succesfull', userId: result.lastID });
+});
+
 
 
 io.on('connection', (socket) => {
