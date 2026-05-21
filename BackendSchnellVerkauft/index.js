@@ -71,6 +71,7 @@ async function requireAuth(req, res, next) {
 
 app.post('/api/auth/register', async (req, res) => {
     const { username, email, password } = req.body;
+    console.log('email:' + email + " password: " + password)
 
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'wrong input' });
@@ -94,7 +95,32 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(201).json({ message: 'succesfull', userId: result.lastID });
 });
 
+app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    console.log('email:' + email + " password: " + password)
 
+    if (!email || !password) {
+        return res.status(400).json({ error: 'wrong input' });
+    }
+
+    const user = await db.get(`
+        SELECT * FROM users WHERE email = ? AND password = ?
+    `, [email, hashPassword(password)]);
+
+    if (!user) {
+        return res.status(401).json({ error: 'email or password wrong' });
+    }
+
+    const token = crypto.randomUUID();
+    await db.run(`
+        INSERT INTO sessions (token, user_id) VALUES (?, ?)
+    `, [token, user.id]);
+
+    res.json({
+        token,
+        user: { id: user.id, username: user.username, email: user.email }
+    });
+});
 
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
