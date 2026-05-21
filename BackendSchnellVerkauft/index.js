@@ -122,6 +122,14 @@ app.post('/api/auth/login', async (req, res) => {
     });
 });
 
+app.post('/api/auth/logout', requireAuth, async (req, res) => {
+    const token = req.headers.authorization.slice(7);
+    await db.run(`
+        DELETE FROM sessions WHERE token = ?
+    `, [token]);
+    res.json({ message: 'logout succesfull' });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
