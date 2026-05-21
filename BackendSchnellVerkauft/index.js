@@ -130,6 +130,14 @@ app.post('/api/auth/logout', requireAuth, async (req, res) => {
     res.json({ message: 'logout succesfull' });
 });
 
+app.get('/api/auth/me', requireAuth, async (req, res) => {
+    const user = await db.get(`
+        SELECT id, username, email, created_at FROM users WHERE id = ?
+    `, [req.userId]);
+    if (!user) return res.status(404).json({ error: 'user not found' });
+    res.json({ user });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
