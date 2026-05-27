@@ -1,10 +1,65 @@
+<script>
+	import { goto } from '$app/navigation';
+	import { user } from '$lib/assets/user.svelte'
+
+	let username = $state('');
+	let email = $state('');
+	let password = $state('');
+	let passwordConfirm = $state('');
+	let errorMsg = $state('');
+	let loading = $state(false);
+
+	async function handleRegister() {
+		errorMsg = '';
+
+		if (!username || !email || !password || !passwordConfirm) {
+			errorMsg = 'Bitte alle Felder ausfüllen.';
+			return;
+		}
+
+		if (password !== passwordConfirm) {
+			errorMsg = 'Passwörter stimmen nicht überein.';
+			return;
+		}
+
+		if (password.length < 6) {
+			errorMsg = 'Passwort muss mindestens 6 Zeichen lang sein.';
+			return;
+		}
+
+		loading = true;
+		try {
+			const res = await fetch('http://localhost:3000/api/auth/register', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username, email, password })
+			});
+
+			const data = await res.json();
+			console.log(data)
+
+			if (!res.ok) {
+				errorMsg = data.error || 'Registrierung fehlgeschlagen.';
+				return;
+			}
+
+			goto('/');
+		} catch {
+			errorMsg = 'Server nicht erreichbar.';
+		} finally {
+			loading = false;
+		}
+	}
+</script>
+
 <div class="page">
 	<div class="card">
 		<h1 class="app-name">SchnellVerkauft</h1>
 		<h2 class="form-title">Registrieren</h2>
 
-
-		<div class="error-box"></div>
+		{#if errorMsg}
+			<div class="error-box">{errorMsg}</div>
+		{/if}
 
 		<div class="form-group">
 			<label for="username">Benutzername</label>
@@ -12,6 +67,7 @@
 				id="username"
 				type="text"
 				placeholder="Benutzernamen eingeben"
+				bind:value={username}
 			/>
 		</div>
 
@@ -21,6 +77,7 @@
 				id="email"
 				type="email"
 				placeholder="E-Mail-Adresse eingeben"
+				bind:value={email}
 			/>
 		</div>
 
@@ -30,6 +87,7 @@
 				id="password"
 				type="password"
 				placeholder="Passwort eingeben"
+				bind:value={password}
 			/>
 		</div>
 
@@ -39,11 +97,12 @@
 				id="passwordConfirm"
 				type="password"
 				placeholder="Passwort nochmals eingeben"
+				bind:value={passwordConfirm}
 			/>
 		</div>
 
-		<button class="btn-primary">
-            Register
+		<button class="btn-primary" onclick={handleRegister} disabled={loading}>
+			{loading ? 'Wird registriert…' : 'Registrieren'}
 		</button>
 
 		<p class="switch-link">

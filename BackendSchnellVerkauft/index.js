@@ -8,10 +8,12 @@ import path from 'path';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import express from 'express';
+import cors from 'cors';
 
 const dbFilePath = path.join(process.cwd(), 'database.sqlite');
 const PORT = 3000;
 const app = express();
+app.use(cors());
 app.use(express.json());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
