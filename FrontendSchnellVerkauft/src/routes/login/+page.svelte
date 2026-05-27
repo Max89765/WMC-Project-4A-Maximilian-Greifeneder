@@ -1,5 +1,44 @@
 <script>
-	
+	import { goto } from '$app/navigation';
+	import { setUser } from '$lib/assets/user.svelte.js';
+
+	let email = $state('');
+	let password = $state('');
+	let errorMsg = $state('');
+	let loading = $state(false);
+
+	async function handleLogin() {
+		errorMsg = '';
+
+		if (!email || !password) {
+			errorMsg = 'Bitte alle Felder ausfüllen.';
+			return;
+		}
+
+		loading = true;
+		try {
+			const res = await fetch('http://localhost:3000/api/auth/login', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password })
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				errorMsg = data.error || 'Login fehlgeschlagen.';
+				return;
+			}
+
+			setUser(data.user);
+			localStorage.setItem('token', data.token); //help with ai
+			goto('/');
+		} catch {
+			errorMsg = 'Server nicht erreichbar.';
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <div class="page">
@@ -7,9 +46,9 @@
 		<h1 class="app-name">SchnellVerkauft</h1>
 		<h2 class="form-title">Anmelden</h2>
 
-
-        <div class="error-box"></div>
-
+		{#if errorMsg}
+			<div class="error-box">{errorMsg}</div>
+		{/if}
 
 		<div class="form-group">
 			<label for="email">E-Mail</label>
@@ -17,6 +56,7 @@
 				id="email"
 				type="email"
 				placeholder="E-Mail-Adresse eingeben"
+				bind:value={email}
 			/>
 		</div>
 
@@ -26,11 +66,12 @@
 				id="password"
 				type="password"
 				placeholder="Passwort eingeben"
+				bind:value={password}
 			/>
 		</div>
 
-		<button class="btn-primary" >
-            Login
+		<button class="btn-primary" onclick={handleLogin} disabled={loading}>
+			{loading ? 'Wird angemeldet…' : 'Log in'}
 		</button>
 
 		<p class="switch-link">

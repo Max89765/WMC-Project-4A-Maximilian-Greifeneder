@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { user } from '$lib/assets/user.svelte'
+	import { setUser } from '$lib/assets/user.svelte.js';
 
 	let username = $state('');
 	let email = $state('');
@@ -43,7 +43,26 @@
 				return;
 			}
 
-			goto('/');
+			try {
+				const res = await fetch('http://localhost:3000/api/auth/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email, password })
+				});
+
+				const data = await res.json();
+
+				if (!res.ok) {
+					errorMsg = data.error || 'Login fehlgeschlagen.';
+					return;
+				}
+
+				setUser(data.user);
+				localStorage.setItem('token', data.token); //help with ai
+				goto('/');
+			} catch {
+				errorMsg = 'Server nicht erreichbar.';
+			}
 		} catch {
 			errorMsg = 'Server nicht erreichbar.';
 		} finally {

@@ -6,6 +6,7 @@ export function getUser() {
 
 export function setUser(newUser) {
 	user = newUser;
+	console.log(user);
 }
 
 export function clearUser() {
