@@ -215,6 +215,23 @@ app.get('/api/listings', async (req, res) => {// help with ai
     res.json(listings);
 });
 
+app.get('/api/listings/:id', async (req, res) => {
+    const listing = await db.get(`
+        SELECT listings.*, users.username
+        FROM listings
+        JOIN users ON listings.user_id = users.id
+        WHERE listings.id = ?
+    `, [req.params.id]);
+
+    if (!listing) return res.status(404).json({ error: 'listing not found' });
+
+    const images = await db.all(`
+        SELECT url FROM images WHERE listing_id = ?
+    `, [req.params.id]);
+
+    res.json({ ...listing, images: images.map(i => i.url) });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
