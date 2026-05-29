@@ -184,6 +184,37 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
     res.json({ user });
 });
 
+app.get('/api/listings', async (req, res) => {// help with ai
+    const { q, category, location } = req.query;
+
+    let query = `
+        SELECT listings.*, users.username,
+               (SELECT url FROM images WHERE listing_id = listings.id LIMIT 1) AS image
+        FROM listings
+        JOIN users ON listings.user_id = users.id
+        WHERE 1=1
+    `;
+    const params = [];
+
+    if (q) {
+        query += ' AND (listings.title LIKE ? OR listings.description LIKE ?)';
+        params.push(`%${q}%`, `%${q}%`);
+    }
+    if (category) {
+        query += ' AND listings.category = ?';
+        params.push(category);
+    }
+    if (location) {
+        query += ' AND listings.location LIKE ?';
+        params.push(`%${location}%`);
+    }
+
+    query += ' ORDER BY listings.created_at DESC';
+
+    const listings = await db.all(query, params);
+    res.json(listings);
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
