@@ -232,6 +232,22 @@ app.get('/api/listings/:id', async (req, res) => {
     res.json({ ...listing, images: images.map(i => i.url) });
 });
 
+app.post('/api/listings', requireAuth, async (req, res) => {
+    const { title, description, price, category, location } = req.body;
+
+    if (!title || !description || !price || !category || !location) {
+        return res.status(400).json({ error: 'all fields required' });
+    }
+
+    const result = await db.run(`
+        INSERT INTO listings (title, description, price, category, location, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `, [title, description, price, category, location, req.userId]);
+
+    io.emit('listings-changed', 'new listing added');
+    res.status(201).json({ success: true, listingId: result.lastID });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
