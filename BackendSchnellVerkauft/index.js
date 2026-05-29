@@ -9,6 +9,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer'; //help with ai
 
 const dbFilePath = path.join(process.cwd(), 'database.sqlite');
 const PORT = 3000;
@@ -20,6 +21,30 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE']}
 });
 
+// ── Multer – Bild-Upload Konfiguration ────────────────────────────────────────
+// Claude Prompt: "How do I configure multer in express to save uploaded images to a folder?"
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = './uploads';
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, crypto.randomUUID() + ext);
+    }
+});
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB
+    fileFilter: (req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        cb(null, allowed.includes(file.mimetype));
+    }
+});
+
+// Uploads-Ordner als statische Dateien bereitstellen
+app.use('/uploads', express.static('./uploads'));
 
 
 if (fs.existsSync(dbFilePath)) {
@@ -44,6 +69,25 @@ await db.exec(`
         user_id    INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS listings (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        title       TEXT    NOT NULL,
+        description TEXT    NOT NULL,
+        price       REAL    NOT NULL,
+        category    TEXT    NOT NULL,
+        location    TEXT    NOT NULL,
+        user_id     INTEGER NOT NULL,
+        created_at  TEXT    DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS images (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        listing_id  INTEGER NOT NULL,
+        url         TEXT    NOT NULL,
+        FOREIGN KEY (listing_id) REFERENCES listings(id)
+);
 `);
 
 app.get('/', (req, res) => {
