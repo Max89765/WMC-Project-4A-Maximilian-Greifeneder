@@ -262,6 +262,27 @@ app.delete('/api/listings/:id', requireAuth, async (req, res) => {
     res.json({ success: true });
 });
 
+app.post('/api/listings/:id/images', requireAuth, upload.array('images', 5), async (req, res) => {
+    const listing = await db.get(`
+        SELECT * FROM listings WHERE id = ? AND user_id = ?
+    `, [req.params.id, req.userId]);
+
+    if (!listing) return res.status(403).json({ error: 'not your listing' });
+
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'no images uploaded' });
+    }
+
+    for (const file of req.files) {
+        const url = `/uploads/${file.filename}`;
+        await db.run(`
+            INSERT INTO images (listing_id, url) VALUES (?, ?)
+        `, [req.params.id, url]);
+    }
+
+    res.json({ success: true, count: req.files.length });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
