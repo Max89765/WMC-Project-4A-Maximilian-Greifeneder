@@ -248,6 +248,20 @@ app.post('/api/listings', requireAuth, async (req, res) => {
     res.status(201).json({ success: true, listingId: result.lastID });
 });
 
+app.delete('/api/listings/:id', requireAuth, async (req, res) => {
+    const listing = await db.get(`
+        SELECT * FROM listings WHERE id = ? AND user_id = ?
+    `, [req.params.id, req.userId]);
+
+    if (!listing) return res.status(403).json({ error: 'not your listing' });
+
+    await db.run('DELETE FROM images WHERE listing_id = ?', [req.params.id]);
+    await db.run('DELETE FROM listings WHERE id = ?', [req.params.id]);
+
+    io.emit('listings-changed', 'listing removed');
+    res.json({ success: true });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
