@@ -6,7 +6,6 @@
 
 	let { children } = $props();
 
-	// Navbar auf Login/Register ausblenden
 	let hideNavbar = $derived(
 		$page.url.pathname === '/login' || $page.url.pathname === '/register'
 	);

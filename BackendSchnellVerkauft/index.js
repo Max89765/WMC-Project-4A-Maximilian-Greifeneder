@@ -51,6 +51,8 @@ if (fs.existsSync(dbFilePath)) {
     fs.unlinkSync(dbFilePath);
 }
 
+
+
 const db = await open({
     filename: dbFilePath,
     driver: sqlite3.Database
@@ -89,6 +91,79 @@ await db.exec(`
         FOREIGN KEY (listing_id) REFERENCES listings(id)
 );
 `);
+
+// ── TESTDATEN SEEDING ────────────────────────────────────────────────────────
+async function seedDatabase() {
+    console.log('🌱 Generiere Testdaten...');
+
+    // 1. Test-User anlegen (Passwörter werden mit deiner Funktion gehasht)
+    const pwdAlice = hashPassword('password123');
+    const pwdBob = hashPassword('securepassword');
+
+    const user1 = await db.run(
+        `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`,
+        ['Alice_Dev', 'alice@example.com', pwdAlice]
+    );
+    const user2 = await db.run(
+        `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`,
+        ['Bob_Builder', 'bob@example.com', pwdBob]
+    );
+
+    const aliceId = user1.lastID;
+    const bobId = user2.lastID;
+
+    // 2. Feste Test-Token für Postman/Insomnia generieren
+    // Verwende im Authorization-Header einfach: Bearer test-token-alice
+    await db.run(`INSERT INTO sessions (token, user_id) VALUES (?, ?)`, ['test-token-alice', aliceId]);
+    await db.run(`INSERT INTO sessions (token, user_id) VALUES (?, ?)`, ['test-token-bob', bobId]);
+
+    // 3. Test-Listings anlegen
+    const listing1 = await db.run(`
+        INSERT INTO listings (title, description, price, category, location, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+        'iPhone 13 Pro - 128GB', 
+        'Top Zustand, kaum Kratzer. Akkukapazität bei 85%. Inklusive Originalverpackung.', 
+        549.99, 
+        'Elektronik', 
+        'Berlin', 
+        aliceId
+    ]);
+
+    const listing2 = await db.run(`
+        INSERT INTO listings (title, description, price, category, location, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+        'Cube Trekkingrad 28 Zoll', 
+        '24-Gang Shimano Schaltung, hydraulische Scheibenbremsen. Frisch vom Service.', 
+        380.00, 
+        'Sport', 
+        'München', 
+        aliceId
+    ]);
+
+    const listing3 = await db.run(`
+        INSERT INTO listings (title, description, price, category, location, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+        'Massivholz Esstisch (Eiche)', 
+        'Wunderschöner Eichentisch. Maße: 180x90cm. Nur für Selbstabholer aus dem 2. OG.', 
+        220.00, 
+        'Möbel', 
+        'Hamburg', 
+        bobId
+    ]);
+
+    // 4. Mock-Einträge für Bilder hinzufügen
+    await db.run(`INSERT INTO images (listing_id, url) VALUES (?, ?)`, [listing1.lastID, '/uploads/mock-iphone.jpg']);
+    await db.run(`INSERT INTO images (listing_id, url) VALUES (?, ?)`, [listing2.lastID, '/uploads/mock-bike.jpg']);
+    await db.run(`INSERT INTO images (listing_id, url) VALUES (?, ?)`, [listing3.lastID, '/uploads/mock-table.jpg']);
+
+    console.log('✅ Testdaten erfolgreich in die SQLite-Datenbank geladen!');
+}
+
+// Führe die Seeding-Funktion aus
+await seedDatabase();
 
 app.get('/', (req, res) => {
     res.send('hello world');
