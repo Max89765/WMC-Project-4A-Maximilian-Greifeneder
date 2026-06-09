@@ -436,6 +436,17 @@ app.get('/api/conversations', requireAuth, async (req, res) => {
     res.json(convs);
 });
  
+app.get('/api/conversations/:id/messages', requireAuth, async (req, res) => {
+    const msgs = await db.all(`
+        SELECT messages.*, users.username AS sender_name
+        FROM messages
+        JOIN users ON messages.sender_id = users.id
+        WHERE conversation_id = ?
+        ORDER BY created_at ASC
+    `, [req.params.id]);
+
+    res.json(msgs);
+});
 
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
