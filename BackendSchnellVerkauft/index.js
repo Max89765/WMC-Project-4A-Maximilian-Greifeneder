@@ -379,6 +379,31 @@ app.post('/api/listings/:id/images', requireAuth, upload.array('images', 5), asy
     }
 
     res.json({ success: true, count: req.files.length });
+}); 
+
+//conversations ---------------------------------------------------------------------------------
+app.post('/api/conversations', requireAuth, async (req, res) => {
+    const { listing_id, seller_id } = req.body;
+    const buyer_id = req.userId;
+
+    if (buyer_id === seller_id) {
+        return res.status(400).json({ error: 'cannot chat with yourself' });
+    }
+  
+    let conv = await db.get(`
+        SELECT * FROM conversations
+        WHERE listing_id = ? AND buyer_id = ? AND seller_id = ?
+    `, [listing_id, buyer_id, seller_id]);
+
+    if (!conv) {
+        const result = await db.run(`
+            INSERT INTO conversations (listing_id, buyer_id, seller_id)
+            VALUES (?, ?, ?)
+        `, [listing_id, buyer_id, seller_id]);
+        conv = await db.get('SELECT * FROM conversations WHERE id = ?', [result.lastID]);
+    }
+
+    res.json({ conversationId: conv.id });
 });
 
 io.on('connection', (socket) => {
