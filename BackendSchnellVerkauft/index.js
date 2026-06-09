@@ -406,6 +406,37 @@ app.post('/api/conversations', requireAuth, async (req, res) => {
     res.json({ conversationId: conv.id });
 });
 
+app.get('/api/conversations', requireAuth, async (req, res) => {
+    const userId = req.userId;
+
+    //Help with AI
+    const convs = await db.all(`
+        SELECT
+            conversations.id,
+            conversations.listing_id,
+            CASE
+                WHEN conversations.buyer_id = ? THEN conversations.seller_id
+                ELSE conversations.buyer_id
+            END AS other_user_id,
+            CASE
+                WHEN conversations.buyer_id = ? THEN seller.username
+                ELSE buyer.username
+            END AS other_username,
+            listings.title AS listing_title,
+            (SELECT content    FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) AS last_message,
+            (SELECT created_at FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) AS last_time
+        FROM conversations
+        JOIN users AS buyer  ON conversations.buyer_id  = buyer.id
+        JOIN users AS seller ON conversations.seller_id = seller.id
+        JOIN listings        ON conversations.listing_id = listings.id
+        WHERE conversations.buyer_id = ? OR conversations.seller_id = ?
+        ORDER BY last_time DESC
+    `, [userId, userId, userId, userId]);
+
+    res.json(convs);
+});
+ 
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
