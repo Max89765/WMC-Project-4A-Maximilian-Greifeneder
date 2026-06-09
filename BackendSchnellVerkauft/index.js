@@ -448,6 +448,27 @@ app.get('/api/conversations/:id/messages', requireAuth, async (req, res) => {
     res.json(msgs);
 });
 
+app.post('/api/conversations/:id/messages', requireAuth, async (req, res) => {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: 'empty message' });
+
+    const result = await db.run(`
+        INSERT INTO messages (conversation_id, sender_id, content)
+        VALUES (?, ?, ?)
+    `, [req.params.id, req.userId, content]);
+
+    const msg = await db.get(` 
+        SELECT messages.*, users.username AS sender_name
+        FROM messages JOIN users ON messages.sender_id = users.id
+        WHERE messages.id = ?
+    `, [result.lastID]);
+
+    // Echtzeit via Socket.IO an alle im Raum senden // help with ai
+    io.to(`conv-${req.params.id}`).emit('new-message', msg);
+
+    res.status(201).json(msg);
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
     socket.on('disconnect', () => {
