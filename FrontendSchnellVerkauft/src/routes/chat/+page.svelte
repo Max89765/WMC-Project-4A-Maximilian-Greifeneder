@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { onDestroy } from 'svelte';
 	import { getUser } from '$lib/assets/user.svelte.js';
+    import { setUser } from '$lib/assets/user.svelte.js';
 	import { io } from 'socket.io-client';
 
 	let user = $derived(getUser());
@@ -97,8 +98,32 @@
 	);
 
 	$effect(() => {
-		fetchConversations();
-	});
+        async function init() {
+            const token = localStorage.getItem('token');
+            
+            // Wenn ein Token da ist, aber der User noch nicht im State liegt:
+            if (token && !getUser()) {
+                try {
+                    const res = await fetch('http://localhost:3000/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setUser(data.user); // State wiederherstellen!
+                    } else {
+                        // Token abgelaufen oder ungültig
+                        localStorage.removeItem('token');
+                    }
+                } catch (err) {
+                    console.error('Fehler beim Laden des Users', err);
+                }
+            }
+            // Danach erst die Konversationen laden
+            fetchConversations();
+        }
+    
+        init();
+    });
 </script>
 
 <!-- Blue header bar wie im Mockup -->

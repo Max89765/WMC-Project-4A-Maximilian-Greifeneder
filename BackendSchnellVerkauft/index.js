@@ -471,6 +471,13 @@ app.post('/api/conversations/:id/messages', requireAuth, async (req, res) => {
 
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
+
+    socket.on('join-conversation', (convId) => {
+        const roomName = `conv-${convId}`;
+        socket.join(roomName);
+        console.log(`Client ${socket.id} joined room: ${roomName}`);
+    });
+
     socket.on('disconnect', () => {
         console.log(`client with id ${socket.id} has disconnected`);
     });
