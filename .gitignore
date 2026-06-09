@@ -1,0 +1,4 @@
+BackendSchnellVerkauft/uploads/* 
+!BackendSchnellVerkauft/uploads/mock-bike.* 
+!BackendSchnellVerkauft/uploads/mock-iphone.* 
+!BackendSchnellVerkauft/uploads/mock-table.* 
