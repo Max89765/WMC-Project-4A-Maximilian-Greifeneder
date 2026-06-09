@@ -36,7 +36,6 @@
 
 		loading = true;
 		try {
-			// 1. Anzeige erstellen
 			const res = await fetch('http://localhost:3000/api/listings', {
 				method: 'POST',
 				headers: {
@@ -52,7 +51,7 @@
 				return;
 			}
 
-			// 2. Bilder hochladen falls vorhanden
+			
 			if (imageFiles.length > 0) {
 				const formData = new FormData(); // help with ai
 				for (const file of imageFiles) {
