@@ -89,7 +89,30 @@ await db.exec(`
         listing_id  INTEGER NOT NULL,
         url         TEXT    NOT NULL,
         FOREIGN KEY (listing_id) REFERENCES listings(id)
-);
+    );
+
+    CREATE TABLE IF NOT EXISTS conversations (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        listing_id  INTEGER NOT NULL,
+        buyer_id    INTEGER NOT NULL,
+        seller_id   INTEGER NOT NULL,
+        created_at  TEXT DEFAULT (datetime('now')),
+        UNIQUE(listing_id, buyer_id, seller_id),
+        FOREIGN KEY (listing_id)  REFERENCES listings(id),
+        FOREIGN KEY (buyer_id)    REFERENCES users(id),
+        FOREIGN KEY (seller_id)   REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id INTEGER NOT NULL,
+        sender_id       INTEGER NOT NULL,
+        content         TEXT    NOT NULL,
+        created_at      TEXT    DEFAULT (datetime('now')),
+        FOREIGN KEY (conversation_id) REFERENCES conversations(id),
+        FOREIGN KEY (sender_id)       REFERENCES users(id)
+    );
+
 `);
 
 // ── TESTDATEN SEEDING ────────────────────────────────────────────────────────
