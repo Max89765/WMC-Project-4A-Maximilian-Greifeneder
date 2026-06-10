@@ -1,8 +1,7 @@
 <script>
 	import { page } from '$app/stores';
 	import { onDestroy } from 'svelte';
-	import { getUser } from '$lib/assets/user.svelte.js';
-    import { setUser } from '$lib/assets/user.svelte.js';
+	import { getUser, setUser, setUnreadCount } from '$lib/assets/user.svelte.js';
 	import { io } from 'socket.io-client';
 
 	let user = $derived(getUser());
@@ -20,8 +19,8 @@
 	socket.on('new-message', (msg) => { // help with ai
 		if (activeConversation && msg.conversation_id === activeConversation.id) {
 			messages = [...messages, msg];
+			scrollToBottom();
 		}
-		// Konversationsliste aktualisieren
 		conversations = conversations.map(c =>
 			c.id === msg.conversation_id
 				? { ...c, last_message: msg.content, last_time: msg.created_at }
@@ -31,7 +30,16 @@
 
 	onDestroy(() => socket.disconnect());
 
-	// Konversationen laden
+	// Beim Öffnen der Chat-Seite: Badge zurücksetzen
+	setUnreadCount(0);
+
+	function scrollToBottom() { // help with ai
+		setTimeout(() => {
+			const el = document.getElementById('messages-container');
+			if (el) el.scrollTop = el.scrollHeight;
+		}, 50);
+	}
+
 	async function fetchConversations() {
 		const token = localStorage.getItem('token');
 		try {
@@ -40,7 +48,6 @@
 			});
 			conversations = await res.json();
 
-			// Falls ?conversation=id in URL, direkt öffnen
 			const urlConvId = $page.url.searchParams.get('conversation');
 			if (urlConvId) {
 				const conv = conversations.find(c => c.id === Number(urlConvId));
@@ -51,7 +58,6 @@
 		}
 	}
 
-	// Nachrichten einer Konversation laden
 	async function openConversation(conv) {
 		activeConversation = conv;
 		const token = localStorage.getItem('token');
@@ -60,9 +66,9 @@
 		});
 		messages = await res.json();
 		socket.emit('join-conversation', conv.id); // help with ai
+		scrollToBottom();
 	}
 
-	// Nachricht senden
 	async function sendMessage() {
 		if (!messageText.trim() || !activeConversation) return;
 		const token = localStorage.getItem('token');
@@ -86,11 +92,6 @@
 		}
 	}
 
-	function formatTime(dt) {
-		if (!dt) return '';
-		return new Date(dt).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
-	}
-
 	let filteredConversations = $derived(
 		conversations.filter(c =>
 			c.other_username?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -98,42 +99,37 @@
 	);
 
 	$effect(() => {
-        async function init() {
-            const token = localStorage.getItem('token');
-            
-            // Wenn ein Token da ist, aber der User noch nicht im State liegt:
-            if (token && !getUser()) {
-                try {
-                    const res = await fetch('http://localhost:3000/api/auth/me', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        setUser(data.user); // State wiederherstellen!
-                    } else {
-                        // Token abgelaufen oder ungültig
-                        localStorage.removeItem('token');
-                    }
-                } catch (err) {
-                    console.error('Fehler beim Laden des Users', err);
-                }
-            }
-            // Danach erst die Konversationen laden
-            fetchConversations();
-        }
-    
-        init();
-    });
+		async function init() {
+			const token = localStorage.getItem('token');
+			if (token && !getUser()) {
+				try {
+					const res = await fetch('http://localhost:3000/api/auth/me', {
+						headers: { 'Authorization': `Bearer ${token}` }
+					});
+					if (res.ok) {
+						const data = await res.json();
+						setUser(data.user);
+					} else {
+						localStorage.removeItem('token');
+					}
+				} catch (err) {
+					console.error('Fehler beim Laden des Users', err);
+				}
+			}
+			fetchConversations();
+		}
+		init();
+	});
 </script>
 
-<!-- Blue header bar wie im Mockup -->
+<!-- Blue header bar -->
 <div class="bg-[#2d3a9e] px-6 py-3">
 	<span class="text-white font-semibold text-base">Chats</span>
 </div>
 
 <div class="flex h-[calc(100vh-112px)] bg-gray-100">
 
-	<!-- Linke Spalte: Konversationsliste (wie Mockup) -->
+	<!-- Linke Spalte: Konversationsliste -->
 	<div class="w-80 shrink-0 bg-white border border-gray-200 rounded-xl m-4 mr-2 flex flex-col overflow-hidden">
 
 		<!-- Suchleiste -->
@@ -170,15 +166,22 @@
 						class="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition text-left
 							{activeConversation?.id === conv.id ? 'bg-gray-50' : ''}"
 					>
-						<!-- Avatar -->
 						<div class="w-10 h-10 rounded-full bg-[#2d3a9e] flex items-center justify-center text-white font-bold text-sm shrink-0">
 							{conv.other_username?.[0]?.toUpperCase() ?? '?'}
 						</div>
 						<div class="flex-1 min-w-0">
 							<div class="flex justify-between items-center">
 								<span class="text-sm font-semibold text-gray-800 truncate">{conv.other_username}</span>
-								<span class="text-xs text-gray-400 shrink-0 ml-2">{formatTime(conv.last_time)}</span>
+								<span class="text-xs text-gray-400 shrink-0 ml-2">{conv.last_time}</span>
 							</div>
+							<!-- Produkttitel als klickbarer Link -->
+							<a
+								href="/listings/{conv.listing_id}"
+								onclick={(e) => e.stopPropagation()}
+								class="text-xs text-[#2d3a9e] hover:underline truncate block"
+							>
+								{conv.listing_title}
+							</a>
 							<p class="text-xs text-gray-400 truncate">{conv.last_message ?? 'Conversation preview...'}</p>
 						</div>
 					</button>
@@ -187,7 +190,7 @@
 		</div>
 	</div>
 
-	<!-- Rechte Spalte: Chat-Bereich (wie Mockup) -->
+	<!-- Rechte Spalte: Chat-Bereich -->
 	<div class="flex-1 bg-white border border-gray-200 rounded-xl m-4 ml-2 flex flex-col overflow-hidden">
 
 		{#if !activeConversation}
@@ -195,30 +198,47 @@
 				Wähle einen Chat aus
 			</div>
 		{:else}
+			<!-- Chat-Header mit Name + Produktlink -->
+			<div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3">
+				<div class="w-8 h-8 rounded-full bg-[#2d3a9e] flex items-center justify-center text-white font-bold text-xs shrink-0">
+					{activeConversation.other_username?.[0]?.toUpperCase() ?? '?'}
+				</div>
+				<div>
+					<p class="text-sm font-semibold text-gray-800">{activeConversation.other_username}</p>
+					<!-- Produktname mit Link zum Listing -->
+					<a
+						href="/listings/{activeConversation.listing_id}"
+						class="text-xs text-[#2d3a9e] hover:underline"
+					>
+						{activeConversation.listing_title}
+					</a>
+				</div>
+			</div>
+
 			<!-- Nachrichten -->
-			<div class="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
+			<div id="messages-container" class="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
 				{#each messages as msg}
-					{#if msg.sender_id === user.id} <!-- Allways false -->
-						<!-- Eigene Nachricht (rechts, blau wie Mockup) -->
+					{#if msg.sender_id === user?.id}
+						<!-- Eigene Nachricht rechts, blau -->
 						<div class="flex justify-end">
 							<div class="max-w-xs">
 								<div class="bg-[#2d3a9e] text-white text-sm px-4 py-2 rounded-2xl rounded-br-sm">
 									{msg.content}
 								</div>
 								<div class="flex items-center justify-end gap-1 mt-1">
-									<span class="text-xs text-gray-400">{formatTime(msg.created_at)}</span>
+									<span class="text-xs text-gray-400">{msg.created_at}</span>
 								</div>
 							</div>
 						</div>
 					{:else}
-						<!-- Fremde Nachricht (links, grau wie Mockup) -->
+						<!-- Fremde Nachricht links, grau -->
 						<div class="flex justify-start">
 							<div class="max-w-xs">
 								<div class="bg-gray-100 text-gray-800 text-sm px-4 py-2 rounded-2xl rounded-bl-sm">
 									{msg.content}
 								</div>
 								<div class="flex items-center gap-1 mt-1">
-									<span class="text-xs text-gray-400">{formatTime(msg.created_at)}</span>
+									<span class="text-xs text-gray-400">{msg.created_at}</span>
 									<button class="text-gray-300 hover:text-red-400 text-xs">♡</button>
 								</div>
 							</div>
@@ -227,7 +247,7 @@
 				{/each}
 			</div>
 
-			<!-- Eingabe-Zeile (wie Mockup) -->
+			<!-- Eingabe-Zeile -->
 			<div class="border-t border-gray-200 px-4 py-3 flex items-center gap-3">
 				<span class="text-gray-400 text-lg">···</span>
 				<input
