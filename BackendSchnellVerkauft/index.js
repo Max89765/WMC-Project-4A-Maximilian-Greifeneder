@@ -469,6 +469,28 @@ app.post('/api/conversations/:id/messages', requireAuth, async (req, res) => {
     res.status(201).json(msg);
 });
 
+app.get('/api/conversations/unread-count', requireAuth, async (req, res) => {
+    const userId = req.userId;
+
+    // Zählt Konversationen wo die letzte Nachricht NICHT vom eingeloggten User kommt help with ai
+    const result = await db.get(`
+        SELECT COUNT(*) as count
+        FROM conversations
+        WHERE (buyer_id = ? OR seller_id = ?)
+        AND (
+            SELECT sender_id FROM messages
+            WHERE conversation_id = conversations.id
+            ORDER BY created_at DESC LIMIT 1
+        ) != ?
+        AND (
+            SELECT COUNT(*) FROM messages
+            WHERE conversation_id = conversations.id
+        ) > 0
+    `, [userId, userId, userId]);
+
+    res.json({ count: result?.count ?? 0 });
+});
+
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
 
