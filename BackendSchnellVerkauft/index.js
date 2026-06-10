@@ -466,6 +466,12 @@ app.post('/api/conversations/:id/messages', requireAuth, async (req, res) => {
     // Echtzeit via Socket.IO an alle im Raum senden // help with ai
     io.to(`conv-${req.params.id}`).emit('new-message', msg);
 
+    //help with ai
+    const conv = await db.get(`SELECT buyer_id, seller_id FROM conversations WHERE id = ?`, [req.params.id]);
+    const recipientId = (conv.buyer_id === req.userId) ? conv.seller_id : conv.buyer_id;
+
+    io.to(`user-${recipientId}`).emit('unread-notification');
+
     res.status(201).json(msg);
 });
 
@@ -494,7 +500,13 @@ app.get('/api/conversations/unread-count', requireAuth, async (req, res) => {
 io.on('connection', (socket) => {
     console.log(`new client connected: ${socket.id}`);
 
-    socket.on('join-conversation', (convId) => {
+    socket.on('identify', (userId) => {//help with ai
+        const userRoom = `user-${userId}`;
+        socket.join(userRoom);
+        console.log(`Client ${socket.id} joined personal room: ${userRoom}`);
+    });
+
+    socket.on('join-conversation', (convId) => {//help with ai
         const roomName = `conv-${convId}`;
         socket.join(roomName);
         console.log(`Client ${socket.id} joined room: ${roomName}`);
