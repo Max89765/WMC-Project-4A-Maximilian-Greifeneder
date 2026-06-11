@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "create": "+ Anzeige erstellen",
+    "chats": "Chats",
+    "logout": "Logout",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "home": {
+    "search_placeholder": "Produkte suchen...",
+    "search_btn": "Suchen",
+    "categories": "Kategorien",
+    "no_listings": "Keine Anzeigen gefunden.",
+    "create_first": "Erste Anzeige erstellen →",
+    "load_error": "Anzeigen konnten nicht geladen werden."
+  },
+  "cat": {
+    "clothing": "Kleidung",
+    "electronics": "Elektronik",
+    "sports": "Sport",
+    "cars": "Auto",
+    "furniture": "Möbel",
+    "other": "Sonstiges"
+  },
+  "detail": {
+    "header": "Detail",
+    "no_image": "Kein Bild",
+    "message": "Nachricht an {name}",
+    "delete": "Anzeige löschen",
+    "not_found": "Anzeige nicht gefunden.",
+    "server_error": "Server nicht erreichbar."
+  },
+  "new": {
+    "title": "Anzeige erstellen",
+    "field_title": "Titel",
+    "field_desc": "Beschreibung",
+    "field_price": "Preis (€)",
+    "field_loc": "Standort",
+    "field_cat": "Kategorie",
+    "cat_placeholder": "Kategorie wählen...",
+    "photos": "Fotos (max. 5)",
+    "upload_click": "Klicken zum Hochladen",
+    "upload_hint": "JPG, PNG, WEBP – max. 10 MB pro Bild",
+    "submit": "Anzeige veröffentlichen",
+    "submitting": "Wird veröffentlicht...",
+    "error_fields": "Bitte alle Felder ausfüllen.",
+    "error_price": "Bitte einen gültigen Preis eingeben.",
+    "error_server": "Server nicht erreichbar.",
+    "placeholder_title": "z.B. MacBook Pro 2019",
+    "placeholder_desc": "Beschreibung der Anzeige...",
+    "placeholder_loc": "z.B. Wien"
+  },
+  "login": {
+    "title": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "btn": "Log in",
+    "loading": "Wird angemeldet…",
+    "no_account": "Noch kein Konto?",
+    "register": "Registrieren",
+    "error_fields": "Bitte alle Felder ausfüllen.",
+    "error_server": "Server nicht erreichbar.",
+    "placeholder_email": "E-Mail-Adresse eingeben",
+    "placeholder_pw": "Passwort eingeben"
+  },
+  "register": {
+    "title": "Registrieren",
+    "username": "Benutzername",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirm": "Passwort wiederholen",
+    "btn": "Registrieren",
+    "loading": "Wird registriert…",
+    "has_account": "Bereits ein Konto?",
+    "login": "Anmelden",
+    "error_fields": "Bitte alle Felder ausfüllen.",
+    "error_match": "Passwörter stimmen nicht überein.",
+    "error_length": "Passwort muss mindestens 6 Zeichen lang sein.",
+    "error_server": "Server nicht erreichbar.",
+    "placeholder_username": "Benutzernamen eingeben",
+    "placeholder_email": "E-Mail-Adresse eingeben",
+    "placeholder_pw": "Passwort eingeben",
+    "placeholder_confirm": "Passwort nochmals eingeben"
+  },
+  "chat": {
+    "title": "Chats",
+    "search": "Suchen",
+    "no_chats": "Keine Chats",
+    "select": "Wähle einen Chat aus",
+    "placeholder": "Nachricht schreiben..."
+  }
+}

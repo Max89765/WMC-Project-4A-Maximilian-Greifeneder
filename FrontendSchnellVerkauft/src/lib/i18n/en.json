@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "create": "+ Create listing",
+    "chats": "Chats",
+    "logout": "Logout",
+    "login": "Log in",
+    "register": "Register"
+  },
+  "home": {
+    "search_placeholder": "Search for products...",
+    "search_btn": "Search",
+    "categories": "Categories",
+    "no_listings": "No listings found.",
+    "create_first": "Create first listing →",
+    "load_error": "Could not load listings."
+  },
+  "cat": {
+    "clothing": "Clothing",
+    "electronics": "Electronics",
+    "sports": "Sports",
+    "cars": "Cars",
+    "furniture": "Furniture",
+    "other": "Other"
+  },
+  "detail": {
+    "header": "Detail",
+    "no_image": "No image",
+    "message": "Message {name}",
+    "delete": "Delete listing",
+    "not_found": "Listing not found.",
+    "server_error": "Server not reachable."
+  },
+  "new": {
+    "title": "Create listing",
+    "field_title": "Title",
+    "field_desc": "Description",
+    "field_price": "Price (€)",
+    "field_loc": "Location",
+    "field_cat": "Category",
+    "cat_placeholder": "Choose category...",
+    "photos": "Photos (max. 5)",
+    "upload_click": "Click to upload",
+    "upload_hint": "JPG, PNG, WEBP – max. 10 MB per image",
+    "submit": "Publish listing",
+    "submitting": "Publishing...",
+    "error_fields": "Please fill in all fields.",
+    "error_price": "Please enter a valid price.",
+    "error_server": "Server not reachable.",
+    "placeholder_title": "e.g. MacBook Pro 2019",
+    "placeholder_desc": "Description of the listing...",
+    "placeholder_loc": "e.g. Vienna"
+  },
+  "login": {
+    "title": "Log in",
+    "email": "Email",
+    "password": "Password",
+    "btn": "Log in",
+    "loading": "Logging in…",
+    "no_account": "No account yet?",
+    "register": "Register",
+    "error_fields": "Please fill in all fields.",
+    "error_server": "Server not reachable.",
+    "placeholder_email": "Enter your email address",
+    "placeholder_pw": "Enter your password"
+  },
+  "register": {
+    "title": "Register",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirm": "Repeat password",
+    "btn": "Register",
+    "loading": "Registering…",
+    "has_account": "Already have an account?",
+    "login": "Log in",
+    "error_fields": "Please fill in all fields.",
+    "error_match": "Passwords do not match.",
+    "error_length": "Password must be at least 6 characters long.",
+    "error_server": "Server not reachable.",
+    "placeholder_username": "Enter your username",
+    "placeholder_email": "Enter your email address",
+    "placeholder_pw": "Enter your password",
+    "placeholder_confirm": "Enter your password again"
+  },
+  "chat": {
+    "title": "Chats",
+    "search": "Search",
+    "no_chats": "No chats",
+    "select": "Select a chat",
+    "placeholder": "Type a message..."
+  }
+}
