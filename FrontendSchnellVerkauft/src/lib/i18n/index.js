@@ -1,10 +1,10 @@
-// svelte-i18n Setup // help with ai – npm install svelte-i18n
 import { register, init, getLocaleFromNavigator } from 'svelte-i18n';
+import { browser } from '$app/environment'; // 1. Browser-Check importieren
 
 register('de', () => import('./de.json'));
 register('en', () => import('./en.json'));
 
 init({
     fallbackLocale: 'de',
-    initialLocale: localStorage.getItem('lang') ?? getLocaleFromNavigator() ?? 'de',
+    initialLocale: browser ? (window.localStorage.getItem('lang') ?? getLocaleFromNavigator()) : 'de',
 });
